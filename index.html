@@ -521,7 +521,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <span class="cd-sep">:</span>
       <div class="cd-box"><span class="cd-n" id="cd-secs">00</span><span class="cd-u">秒</span></div>
     </div>
-    <div class="cd-sub">📅 7月12日（週日）· 晚上 19:00 正式開播</div>
+    <div class="cd-sub" id="cd-sub-txt">📅 7月25日（週六）· 晚上 19:00 全球直播大課</div>
     <div class="info-pills">
       <div class="ipill"><span class="iv">線上直播</span><span class="il">授課形式</span></div>
       <div class="ipill"><span class="iv">19:00</span><span class="il">每晚開播</span></div>
@@ -961,8 +961,8 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">報名成功！</div>
       <div class="s-sub">你的【AI財道陪跑4天營】席位已鎖定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">🌏&nbsp; 7月12日（週日）全球直播大課</div>
-        <div class="s-info-row">📅&nbsp; 7月14-17日 每晚19:00開課（香港時間）</div>
+        <div class="s-info-row">🌏&nbsp; <span id="s-live-date">7月25日（週六）</span>全球直播大課</div>
+        <div class="s-info-row">📅&nbsp; <span id="s-camp-date">7月28-31日</span> 每晚19:00開課（香港時間）</div>
         <div class="s-info-row">💻&nbsp; 線上直播</div>
         <div class="s-info-row">❤️&nbsp; 特殊情況：可申請直播回放</div>
       </div>
@@ -1025,7 +1025,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <script>
 
 // ★ 統一腳本網址：若重新部署 Apps Script 產生了新網址，替換下面這一行即可
-var GAS_URL='https://script.google.com/macros/s/AKfycbyKk_aL2QqUTfPZjIF1Y2pwqBLrrByE4ckmG80LmgvgF4wgLZ9ryvSDo9Ka_s9dSUE/exec';
+var GAS_URL='https://script.google.com/macros/s/AKfycbx70Cif8riB4YtG0tSDNMP8923aqQ6bohvI4Xgeu0N-bRcBCF2BO-8Ebs7AeOfVIps/exec';
 var COURSE_NAME='AI财道陪跑4天营'; // ★后端识别用（Apps Script/表格），切勿改动
 var COURSE_NAME_TC='AI財道陪跑4天營'; // 前端显示与 WhatsApp 讯息用（繁体）
 // 客服名單（順序與 Apps Script 花名冊一致；前3位為台灣名單專屬池）
@@ -1039,12 +1039,6 @@ var _waAll=[
   {name:'大鹏老师',num:'60173134319'}
 ];
 var _waTW=_waAll.slice(0,3);
-// ★ 台湾/香港站：报名后加 LINE 好友（仅前3位老师有 LINE，本页所有学员均分配至此3位）
-var LINE_LINKS={
-  '志颖老师':'https://line.me/ti/p/hjUysbb98V',
-  '馨予老师':'https://line.me/ti/p/ZcA-ek26fZ',
-  '越聪老师':'https://line.me/ti/p/35tf8BCqSe'
-};
 var _waIndex=0;var _waIndexTW=0;
 var phoneRules={
   '+60':{min:9,max:11,name:'马来西亚',hint:'9-11位'},
@@ -1106,7 +1100,7 @@ function submitModal(){
   var fp=c+p,cn=(phoneRules[c]||{}).name||c;
   // 客戶端預選（僅兜底）：香港站加 WhatsApp。馨予只服務台灣；齊得/小何暫停接新名單
   var _poolTW=_waTW;
-  var _poolIntl=_waAll.filter(function(x){return x.name!=='馨予老师'&&x.name!=='齐得老师'&&x.name!=='小何老师';});
+  var _poolIntl=_waAll.filter(function(x){return x.name!=='馨予老师'&&x.name!=='齐得老师'&&x.name!=='小何老师'&&x.name!=='大鹏老师';}); // 与後端v3.3一致：國際池=志穎/越聰/Sam
   var _pool=(c==='+886')?_poolTW:_poolIntl;
   if(!window._waSeeded){_waIndexTW=Math.floor(Math.random()*99);window._waSeeded=1;}
   var sel=_pool[_waIndexTW%_pool.length]; _waIndexTW++;
@@ -1183,23 +1177,43 @@ function submitModal(){
     }
   },1000);
 }
-// Countdown — 目標：2026年7月12日 19:00 台灣時間 (UTC+8) = UTC 11:00
-var TARGET_TIME = new Date(Date.UTC(2026, 6, 12, 11, 0, 0)); // 月份從0起算，6=7月
+// Countdown — 課程時間表：與台灣版同步（皆為香港時間 UTC+8；月份從0起算，6=7月）
+// 階段1：現在 → 7/25 晚上10:00　倒數 7/25 19:00 全球直播；彈窗營期已提前顯示下一期 7月28-31日
+// 階段2：7/25 22:00 → 7/28 晚上11:00　倒數 7/28 19:00（7月28-31日 4天營）
+// 階段3：7/28 23:00 之後　倒數 8/1（週六）19:00 全球直播
+var CD_SCHEDULE = [
+  { until: Date.UTC(2026,6,25,14,0,0), target: Date.UTC(2026,6,25,11,0,0), label: '📅 7月25日（週六）· 晚上 19:00 全球直播大課', live: '7月25日（週六）', camp: '7月28-31日' },
+  { until: Date.UTC(2026,6,28,15,0,0), target: Date.UTC(2026,6,28,11,0,0), label: '📅 7月28-31日 · 每晚 19:00 開課',        live: '8月1日（週六）', camp: '7月28-31日' },
+  { until: Date.UTC(2026,7,9,16,0,0),  target: Date.UTC(2026,7,1,11,0,0),  label: '📅 8月1日（週六）· 晚上 19:00 全球直播大課', live: '8月1日（週六）', camp: '7月28-31日' }
+];
+function _cdStage(){
+  var now = Date.now();
+  for(var i=0;i<CD_SCHEDULE.length;i++){ if(now < CD_SCHEDULE[i].until) return CD_SCHEDULE[i]; }
+  return CD_SCHEDULE[CD_SCHEDULE.length-1];
+}
+var TARGET_TIME = new Date(_cdStage().target);
 function pad(n){return n<10?'0'+n:''+n;}
 function tick(){
+  var stage = _cdStage();
+  TARGET_TIME = new Date(stage.target);
+  function s(id,v){var e=document.getElementById(id);if(e&&e.textContent!==v)e.textContent=v;}
+  s('cd-sub-txt', stage.label);
+  s('s-live-date', stage.live);
+  s('s-camp-date', stage.camp);
   var now = new Date();
   var diff = Math.max(0, Math.floor((TARGET_TIME - now) / 1000));
-  function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   s('cd-days',  pad(Math.floor(diff / 86400)));
   s('cd-hours', pad(Math.floor((diff % 86400) / 3600)));
   s('cd-mins',  pad(Math.floor((diff % 3600) / 60)));
   s('cd-secs',  pad(diff % 60));
-  // 課程開始後顯示"直播進行中"
+  var liveEl = document.getElementById('cd-live-badge');
+  var rowEl = document.getElementById('cd-row');
   if(diff === 0){
-    var liveEl = document.getElementById('cd-live-badge');
     if(liveEl) liveEl.style.display = 'flex';
-    var rowEl = document.getElementById('cd-row');
     if(rowEl) rowEl.style.opacity = '0.4';
+  } else {
+    if(liveEl) liveEl.style.display = 'none';
+    if(rowEl) rowEl.style.opacity = '';
   }
 }
 tick();
