@@ -1035,7 +1035,6 @@ var _waAll=[
   {name:'越聪老师',num:'601169479857'},
   {name:'馨予老师',num:'60139111413'},
   {name:'齐得老师',num:'601139410137'},
-  {name:'程章凯老师',num:'60126122651'},
   {name:'Sam老师',num:'601170225883'}
   // {name:'小何老师',num:'60145461319'}, // ← 已暫停接新名單
   // {name:'大鹏老师',num:'60173134319'}  // ← 已從國際池移除
@@ -1156,21 +1155,15 @@ function submitModal(){
     });
   }
   // 提交到 Apps Script：服務端做全域性輪流分配 + 重複號碼固定原客服，並寫入名單
-  var _sid=Date.now().toString(36)+Math.random().toString(36).slice(2,8); // 本次提交唯一編號
-  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME,sid:_sid});
-  if(window._subPhone===fp){ // 同一部手機短時間內重複點提交（同一號碼）：直接複用上次結果，不再發請求
-    if(window._subStaff){var _u2=_contactUrl(window._subStaff.name,window._subStaff.num);if(_u2){staffName=window._subStaff.name;_setLINE(_u2);}}
-    _replied=true;
-  } else {
-  window._subPhone=fp;
+  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
-    if(res&&res.ok&&res.staff){var _u=_contactUrl(String(res.staff),res.num);if(_u){staffName=String(res.staff);_setLINE(_u);window._subStaff={name:staffName,num:res.num};}}
+    if(res&&res.ok&&res.staff){var _u=_contactUrl(String(res.staff),res.num);if(_u){staffName=String(res.staff);_setLINE(_u);}}
     _replied=true;
   }).catch(function(){
-    // fetch 失敗（網路受限/被瀏覽器攔截）→ 圖片請求攜帶同一sid補發一次，服務端據此去重，不會重複寫入
+    // fetch 失敗（網路受限/被瀏覽器攔截）→ 改用圖片請求再送一次，只求送達、不讀回應
     try{new Image().src=GAS_URL+'?'+params.toString();}catch(e){}
     _replied=true;
-  });}
+  });
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
   // 倒數計時結束後：必須等服務端分配結果回來才跳轉（最多再等8秒），
