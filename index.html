@@ -1035,6 +1035,7 @@ var _waAll=[
   {name:'越聪老师',num:'601169479857'},
   {name:'馨予老师',num:'60139111413'},
   {name:'齐得老师',num:'601139410137'},
+  {name:'程章凯老师',num:'60126122651'},
   {name:'Sam老师',num:'601170225883'}
   // {name:'小何老师',num:'60145461319'}, // ← 已暫停接新名單
   // {name:'大鹏老师',num:'60173134319'}  // ← 已從國際池移除
@@ -1093,6 +1094,7 @@ detectCountryByIP();
 function openFormModal(){document.getElementById('form-modal').classList.add('show');document.body.style.overflow='hidden';}
 function closeFormModal(e){if(e&&e.target!==document.getElementById('form-modal'))return;document.getElementById('form-modal').classList.remove('show');document.body.style.overflow='';}
 function submitModal(){
+  if(window._submitLocked)return; // 已成功提交過一次：徹底阻止重複提交（無論多快連點）
   var n=document.getElementById('m-name').value.trim(),c=document.getElementById('m-country').value;
   var p=document.getElementById('m-phone').value.trim(),em=document.getElementById('m-email').value.trim();
   var l=(document.getElementById('m-line-optional')||{value:''}).value.trim();
@@ -1100,6 +1102,7 @@ function submitModal(){
   if(!l){alert('請填寫微信號 ID（沒有可填寫「無」）');return;}
   if(!isValidPhone(c,p)){document.getElementById('phone-error').style.display='block';document.getElementById('m-phone').focus();return;}
   document.getElementById('phone-error').style.display='none';
+  window._submitLocked=true; // 驗證全部通過，正式進入提交流程後才上鎖
   var fp=c+p,cn=(phoneRules[c]||{}).name||c;
   // 客戶端預選（僅作後端不可達時的兜底顯示），最終以 Apps Script 服務端分配為準
   // 香港站：一律使用國際池（志穎/越聰/Sam），與後端國際輪流規則一致
@@ -1148,21 +1151,34 @@ function submitModal(){
     if(IS_WECHAT){_showWxGuide();return;} // 微信：整頁跳去 line.me 也喚不起 App，只會卡住
     var _w=window.open(lineUrl,'_blank');if(!_w){window.location.href=lineUrl;}
   }
-  // 微信內點按鈕/圖片也攔下來，改示引導
-  if(IS_WECHAT){
-    [waBtn,waImg].forEach(function(el){
-      if(el)el.addEventListener('click',function(ev){ev.preventDefault();_showWxGuide();});
-    });
+  // 學員手動點擊按鈕/圖片：分配結果沒回來之前一律攔截並排隊，
+  // 結果一到立刻跳轉——徹底杜絕「點到預選客服、後台記的卻是另一位」
+  var _clickWait=false;
+  function _waClick(ev){
+    if(_redirected)return;
+    ev.preventDefault();
+    if(IS_WECHAT){_showWxGuide();return;}
+    if(_replied){_go();return;}
+    _clickWait=true;
+    var cd=document.getElementById('wa-countdown');
+    if(cd)cd.innerHTML='正在為您分配專屬老師，馬上就好…';
+    if(waBtn)waBtn.style.opacity='0.65';
   }
+  if(waBtn)waBtn.addEventListener('click',_waClick);
+  if(waImg)waImg.addEventListener('click',_waClick);
   // 提交到 Apps Script：服務端做全域性輪流分配 + 重複號碼固定原客服，並寫入名單
   var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.staff){var _u=_contactUrl(String(res.staff),res.num);if(_u){staffName=String(res.staff);_setLINE(_u);}}
     _replied=true;
+    if(waBtn)waBtn.style.opacity='';
+    if(_clickWait)_go();
   }).catch(function(){
     // fetch 失敗（網路受限/被瀏覽器攔截）→ 改用圖片請求再送一次，只求送達、不讀回應
     try{new Image().src=GAS_URL+'?'+params.toString();}catch(e){}
     _replied=true;
+    if(waBtn)waBtn.style.opacity='';
+    if(_clickWait)_go();
   });
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
